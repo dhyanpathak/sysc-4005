@@ -1,0 +1,248 @@
+import java.util.*;
+
+public class main {
+    // Declaration of Simulation Methods
+
+    // Simulation Model Variables
+    public static int Clock, workdayHours, currentDay, simDays;                     // We use these to track our steps in the simulation
+    public static int LastL1IdleTime, LastL2IdleTime, LastScaleIdleTime;
+    private static Queue<SimEvent> FEL;                                             // This is our FEL!
+    public static Random RNGloading, RNGscale, RNGtravel;                           // Variables for random numbers generated for each event
+    public static Queue<dumpTruck> LQ, WQ;                                          // Queue lines for the loader unit and weighing unit
+    private static boolean isL1Busy, isL2Busy, isWBusy;                             // Loaders and scale status (busy = TRUE, idle = FALSE)
+
+    // Inputs
+    public static double[][] LTD = {{5,0.3},{10,0.8},{15,1}};                      // All these are times (in minutes) and their cumulative probabilities
+    public static double[][] WTD = {{12,0.7},{16,1}};                              // Refer to the example in Lecture 4: Dump Trucks Example
+    public static double[][] TTD = {{40,0.4},{60,0.7},{80,0.9},{100,1}};
+
+    // Required Metrics, Statistics, and Counters
+    private static double BL, BS;                                           // Total busy time for the two loaders and the scale, respectively
+    private static double UL, US;                                           // Utilization for the two loaders and the scale, respectively
+
+    private static Integer getRandomTime(double TD[][], Random RNV) {
+        Integer randomTime = -1;
+        double temp = RNV.nextDouble();
+        for (int i = 0; i < TD.length; i++){
+            if (Double.compare(temp,TD[i][1]) < 0) {
+                randomTime = ((int) TD[i][0]);
+                break;
+            }
+        }
+        return randomTime;
+    }
+
+    private static void Initialization() {
+        Clock = 0;
+        LastL1IdleTime = 0;
+        LastL2IdleTime = 0;
+        LastScaleIdleTime = 0;
+        workdayHours = 8;
+        currentDay = 1;
+        BL = 0.0;
+        BS = 0.0;
+        UL = 0.0;
+        US = 0.0;
+        simDays = 5; // This specifies the duration of the simulation
+
+        // Creating the required number of trucks
+        dumpTruck DT1 = new dumpTruck(1);
+        dumpTruck DT2 = new dumpTruck(2);
+        dumpTruck DT3 = new dumpTruck(3);
+        dumpTruck DT4 = new dumpTruck(4);
+        dumpTruck DT5 = new dumpTruck(5);
+        dumpTruck DT6 = new dumpTruck(6);
+
+        // You can set up any other initial settings here ;)
+        // DT1 is at the scale, so we need to set isWBusy, change the truck's attribute "WhichService" to SCALE,
+        // and create an EW event
+        System.out.print("\n-----------------------------------------------------------\n");
+        System.out.print("Initial state of the simulation\n");
+        System.out.print("DT1 at the scale, but no truck in the weighing queue.\n");
+        isWBusy = true;
+        DT1.setWhichService(dumpTruck.serviceType.SCALE);
+        ScheduleEvent(SimEvent.eventType.EW,DT1);
+        System.out.print("\n");
+        // DT2 and DT3 are both loading, so we need to set isL1Busy and isLBusy, change the trucks' attribute "WhichService"
+        // to LOADING, and create two EL events
+        System.out.print("DT2 and DT3 are loading. DT4, 5, and 6 are in the loader queue.\n");
+        isL1Busy = true;
+        isL2Busy = true;
+        DT2.setWhichService(dumpTruck.serviceType.LOADER1);
+        DT3.setWhichService(dumpTruck.serviceType.LOADER2);
+        ScheduleEvent(SimEvent.eventType.EL,DT2);
+        System.out.print("\n");
+        ScheduleEvent(SimEvent.eventType.EL,DT3);
+        System.out.print("\n");
+        // The rest of the trucks are in the loader queue
+        DT4.setWhichService(dumpTruck.serviceType.WAITING);
+        DT5.setWhichService(dumpTruck.serviceType.WAITING);
+        DT6.setWhichService(dumpTruck.serviceType.WAITING);
+        LQ.offer(DT4);
+        LQ.offer(DT5);
+        LQ.offer(DT6);
+
+        // Creating the first event (if needed)
+        //SimEvent first = new SimEvent(SimEvent.eventType.ALQ,getRandomTime())
+    }
+
+    public static void main(String[] args) {
+        //long seed = Long.parseLong("12345");    // Creating a seed for the random number generators
+        RNGloading = new Random();                // Initializing the RNGs
+        RNGscale = new Random();
+        RNGtravel = new Random();
+
+        FEL = new PriorityQueue<>();            // Initializing the FEL and waiting queues
+        LQ = new LinkedList<>();
+        WQ = new LinkedList<>();
+
+        Initialization();
+
+        System.out.print("\n-----------------------------------------------------------\n");
+        System.out.print("Day " + currentDay +"\n");
+        while ((currentDay <= simDays) && !(FEL.isEmpty())) {
+            SimEvent imminentEVT = FEL.poll();
+            if (imminentEVT != null) {
+                Clock = imminentEVT.geteTime();
+                System.out.print("Clock = " + Clock);
+                ProcessSimEvent(imminentEVT);
+            }
+            //System.out.print("SIM: FEL isEmpty = " + FEL.isEmpty() +"\n");
+        }
+        GenerateReport();
+    }
+
+    private static void GenerateReport() {
+        UL = (BL/Clock)*100;
+        US = (BS/Clock)*100;
+
+        System.out.print("\n-----------------------------------------------------------\n");
+        System.out.print("Statistics\n");
+        System.out.print("Loaders Utilization = " + UL + "\n");
+        System.out.print("Scale Utilization = " + US + "\n");
+    }
+
+    private static void checkSimDay(Integer clockVal) {
+        if (((Clock/(workdayHours*60)) + 1) > currentDay) {
+        //    currentDay += 1;
+            //Clock = 0;
+            currentDay = (Clock/(workdayHours*60)) + 1;
+            System.out.print("\n-----------------------------------------------------------\n");
+            System.out.print("Day " + currentDay +"\n");
+        }
+
+    }
+
+    private static void ProcessALQ(SimEvent evt) {
+        System.out.print(" event = ALQ truck " + evt.getTruckID().getID());
+        if ((LQ.isEmpty()) && (!isL1Busy || !isL2Busy)) {
+            if (isL1Busy) {
+                isL2Busy=true;
+                evt.getTruckID().setWhichService(dumpTruck.serviceType.LOADER2);
+                LastL2IdleTime = Clock;
+            } else {
+                isL1Busy=true;
+                evt.getTruckID().setWhichService(dumpTruck.serviceType.LOADER1);
+                LastL1IdleTime = Clock;
+            }
+            ScheduleEvent(SimEvent.eventType.EL,evt.getTruckID());
+        } else {
+            evt.getTruckID().setWhichService(dumpTruck.serviceType.WAITING);
+            LQ.offer(evt.getTruckID());
+        }
+    }
+
+    private static void ProcessEL(SimEvent evt) {
+        System.out.print(" event = EL truck " + evt.getTruckID().getID());
+        dumpTruck.serviceType currentService = evt.getTruckID().getWhichService();
+        if ((WQ.isEmpty()) && !isWBusy) {
+            LastScaleIdleTime = Clock;
+            isWBusy=true;
+            evt.getTruckID().setWhichService(dumpTruck.serviceType.SCALE);
+            ScheduleEvent(SimEvent.eventType.EW, evt.getTruckID());
+        } else {
+            evt.getTruckID().setWhichService(dumpTruck.serviceType.WAITING);
+            WQ.offer(evt.getTruckID());
+        }
+
+        // Moving the next truck from LQ to the idle loader, or set the loader status to idle if the queue is empty.
+        if (!LQ.isEmpty()) {
+            dumpTruck moving = LQ.poll();
+            if (currentService == dumpTruck.serviceType.LOADER1) {
+                isL1Busy = true;
+                moving.setWhichService(dumpTruck.serviceType.LOADER1);
+            } else {
+                isL2Busy = true;
+                moving.setWhichService(dumpTruck.serviceType.LOADER2);
+            }
+            ScheduleEvent(SimEvent.eventType.EL,moving);
+        } else {
+            if (currentService == dumpTruck.serviceType.LOADER1) {
+                BL += Clock - LastL1IdleTime;
+                isL1Busy=false;
+            } else {
+                BL += Clock - LastL2IdleTime;
+                isL2Busy=false;
+            }
+        }
+
+    }
+
+    private static void ProcessEW(SimEvent evt) {
+        System.out.print(" event = EW truck " + evt.getTruckID().getID());
+        evt.getTruckID().setWhichService(dumpTruck.serviceType.TRAVEL);
+        ScheduleEvent(SimEvent.eventType.ALQ, evt.getTruckID());
+
+        // Moving the next truck from WQ to the scale, or set the scale status to idle if the queue is empty.
+        if (!WQ.isEmpty()) {
+            dumpTruck moving = WQ.poll();
+            moving.setWhichService(dumpTruck.serviceType.SCALE);
+            isWBusy=true;
+            ScheduleEvent(SimEvent.eventType.EW,moving);
+        } else {
+            BS += Clock - LastScaleIdleTime;
+            isWBusy = false;
+        }
+
+    }
+
+    private static void ScheduleEvent(SimEvent.eventType eType, dumpTruck dti) {
+        Integer newRN = -1;
+        switch (eType) {
+            case ALQ:
+                newRN = getRandomTime(TTD,RNGtravel);
+                break;
+            case EL:
+                newRN = getRandomTime(LTD,RNGloading);
+                break;
+            case EW:
+                newRN = getRandomTime(WTD,RNGscale);
+                break;
+            case ES:
+
+        }
+        checkSimDay(newRN);
+        SimEvent newEVT = new SimEvent(eType,Clock+newRN, dti);
+        System.out.print(" => new event = " + newEVT.geteType() + " time " + newEVT.geteTime() + " truck " + newEVT.getTruckID().getID());
+        FEL.offer(newEVT);
+    }
+
+    private static void ProcessSimEvent(SimEvent imminentEVT) {
+        switch (imminentEVT.geteType()) {
+            case ALQ:
+                ProcessALQ(imminentEVT);
+                break;
+            case EL:
+                ProcessEL(imminentEVT);
+                break;
+            case EW:
+                ProcessEW(imminentEVT);
+                break;
+            case ES:
+        }
+        System.out.print("\n");
+
+    }
+
+
+}
