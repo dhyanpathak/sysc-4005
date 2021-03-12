@@ -4,53 +4,28 @@ public class main {
     // Declaration of Simulation Methods
 
     // Simulation Model Variable
-    public static int LastIns1IdleTime, LastIns2IdleTime;
-    private static Queue<SimEvent> FEL;                                             // This is our FEL!
-    public static Random RNGloading, RNGscale, RNGtravel;                           // Variables for random numbers generated for each event
-    public static Queue<buffer> BQ;                                          // Queue lines for the loader unit and weighing unit
-    private static boolean isL1Busy, isL2Busy, isWBusy;                             // Loaders and scale status (busy = TRUE, idle = FALSE)
+    public static int LastIns1IdleTime, LastIns2IdleTime;LastIns2IdleTime,LastBufferIdleTime
+    public static Queue<buffer> BQ;                                                          // Queue lines for the buffer unit and weighing unit
+    private static boolean isWS1Busy, isWS2Busy, isWS3Busy, isB1Busy, isB2Busy, isB3Busy;       // buffer, workstation status (busy = TRUE, idle = FALSE)
 
     // Inputs
-    public static double[][] LTD = {{5,0.3},{10,0.8},{15,1}};                      // All these are times (in minutes) and their cumulative probabilities
-    public static double[][] WTD = {{12,0.7},{16,1}};                              // Refer to the example in Lecture 4: Dump Trucks Example
-    public static double[][] TTD = {{40,0.4},{60,0.7},{80,0.9},{100,1}};
+    public static double[] WS1, WS2, WS3, sev1, sev2, sev3                    // All these are times (in minutes)
 
     // Required Metrics, Statistics, and Counters
-    private static double BL, BS;                                           // Total busy time for the two loaders and the scale, respectively
-    private static double UL, US;                                           // Utilization for the two loaders and the scale, respectively
-
-    private static Integer getRandomTime(double TD[][], Random RNV) {
-        Integer randomTime = -1;
-        double temp = RNV.nextDouble();
-        for (int i = 0; i < TD.length; i++){
-            if (Double.compare(temp,TD[i][1]) < 0) {
-                randomTime = ((int) TD[i][0]);
-                break;
-            }
-        }
-        return randomTime;
-    }
-
+    private static double BB, BW;                                           // Total busy time for the buffer and workstation
     private static void Initialization() {
         Clock = 0;
-        LastL1IdleTime = 0;
-        LastL2IdleTime = 0;
-        LastScaleIdleTime = 0;
-        workdayHours = 8;
-        currentDay = 1;
-        BL = 0.0;
-        BS = 0.0;
-        UL = 0.0;
-        US = 0.0;
-        simDays = 5; // This specifies the duration of the simulation
+        LastIns1IdleTime = 0;
+        LastIns2IdleTime = 0;
+        LastBufferIdleTime = 0;
+        BB = 0.0;
+        BW = 0.0;
 
         // Creating the required number of trucks
-        dumpTruck DT1 = new dumpTruck(1);
-        dumpTruck DT2 = new dumpTruck(2);
-        dumpTruck DT3 = new dumpTruck(3);
-        dumpTruck DT4 = new dumpTruck(4);
-        dumpTruck DT5 = new dumpTruck(5);
-        dumpTruck DT6 = new dumpTruck(6);
+        component C1 = new component();
+        component C2 = new component();
+        component C3 = new component();
+
 
         // You can set up any other initial settings here ;)
         // DT1 is at the scale, so we need to set isWBusy, change the truck's attribute "WhichService" to SCALE,
