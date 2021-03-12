@@ -3,12 +3,11 @@ import java.util.*;
 public class main {
     // Declaration of Simulation Methods
 
-    // Simulation Model Variables
-    public static int Clock, workdayHours, currentDay, simDays;                     // We use these to track our steps in the simulation
-    public static int LastL1IdleTime, LastL2IdleTime, LastScaleIdleTime;
+    // Simulation Model Variable
+    public static int LastIns1IdleTime, LastIns2IdleTime;
     private static Queue<SimEvent> FEL;                                             // This is our FEL!
     public static Random RNGloading, RNGscale, RNGtravel;                           // Variables for random numbers generated for each event
-    public static Queue<dumpTruck> LQ, WQ;                                          // Queue lines for the loader unit and weighing unit
+    public static Queue<buffer> BQ;                                          // Queue lines for the loader unit and weighing unit
     private static boolean isL1Busy, isL2Busy, isWBusy;                             // Loaders and scale status (busy = TRUE, idle = FALSE)
 
     // Inputs
