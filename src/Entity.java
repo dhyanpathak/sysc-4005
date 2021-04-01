@@ -1,21 +1,26 @@
-public abstract class Entity {
-	private int id;
+import java.util.ArrayList;
+import java.util.List;
+
+public abstract class Entity extends Thread {
+	private long id;
 	private boolean occupied;
-	
-	public Entity(int id, boolean occupied) {
+	List<Buffer> assignedBuffers;
+
+	public Entity(long id) {
 		this.id = id;
-		this.occupied = occupied;
+		this.occupied = false;
+		assignedBuffers = new ArrayList<>();
 	}
 	
-	public boolean isOccupied() {
+	public synchronized boolean isOccupied() {
 		return occupied;
 	}
 
-	public void setOccupied(boolean occupied) {
+	public synchronized void setOccupied(boolean occupied) {
 		this.occupied = occupied;
 	}
 
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 

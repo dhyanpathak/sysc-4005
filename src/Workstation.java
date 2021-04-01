@@ -1,12 +1,11 @@
 import java.util.List;
 
 public class Workstation extends Entity {
-	private int assignedProduct;
 	private Component first = null;
 	private Component second = null;
 
-	public Workstation(int assignedProduct, boolean occupied) {
-		super(assignedProduct, occupied);
+	public Workstation(int assignedProduct) {
+		super(assignedProduct);
 	}
 		
 	public Event assemble() throws InterruptedException {
@@ -16,11 +15,11 @@ public class Workstation extends Entity {
 	}
 
 	@Override
-	public void receive(Component component) throws InterruptedException {
+	public synchronized void receive(Component component) throws InterruptedException {
 		if(first != null) {
 			first = component;
 			
-			if(assignedProduct < 2) {
+			if(this.getId() < 2) {
 				assemble();
 			}
 		} else {
@@ -28,5 +27,9 @@ public class Workstation extends Entity {
 			
 			assemble();
 		}		
+	}
+
+	public void addBuffer(Buffer b) {
+		this.assignedBuffers.add(b);
 	}
 }

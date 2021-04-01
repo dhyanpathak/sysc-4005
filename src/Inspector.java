@@ -1,13 +1,12 @@
 import java.util.List;
 
 public class Inspector extends Entity {
-	List<Buffer> assignedBuffers;
-	
-	public Inspector(int id, boolean occupied) {
-		super(id, occupied);
+
+	public Inspector(int id) {
+		super(id);
 	}
 	
-	public Event inspect(Component c) throws InterruptedException {
+	public synchronized Event inspect(Component c) throws InterruptedException {
 		return new Event(Event.types.PROCESS, 50); //arbitrary wait time
 	}
 	
@@ -18,7 +17,7 @@ public class Inspector extends Entity {
 			inspect(c);
 			
 			for(int i = 0; i < assignedBuffers.size(); i++) {
-				if(assignedBuffers.get(i).getId() == c.getType()) {
+				if(assignedBuffers.get(i).getAssignedComponent() == c.getType()) {
 					assignedBuffers.get(i).receive(c);
 					break;
 				}
@@ -26,5 +25,9 @@ public class Inspector extends Entity {
 		} else {
 			this.wait();
 		}
+	}
+
+	public void addBuffer(Buffer b) {
+		assignedBuffers.add(b);
 	}
 }
