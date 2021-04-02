@@ -1,3 +1,5 @@
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Queue;
 
 public class Buffer {
@@ -10,26 +12,38 @@ public class Buffer {
 	public Buffer(int assignedComponent) {
 		this.assignedComponent = assignedComponent;
 		setOccupied(false);
+		components = new LinkedList<Component>();
 	}
 	
 	public synchronized Component pop() {
-		return components.poll();
+		while(components.size() == 0) {
+			try {
+				wait();
+			} catch(InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		Component c = components.poll();
+		setOccupied(false);
+		notifyAll();
+		return c;
 	}
 
 	public synchronized void receive(Component c) throws InterruptedException {
-		if(!this.isOccupied()) {
-			components.add(c);
-			if(components.size() == capacity) {
-				setOccupied(true);
-			};
-//			if(!assignedWorkstation.isOccupied()) {
-//				assignedWorkstation.receive(c);
-//			} else {
-//				this.wait();
-//			}
-		} else {
-			this.wait();
+		while(isOccupied()) {
+			try {
+				wait();
+			} catch(InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
+		//System.out.println("Buffer for C" + c.getType() + " received component.");
+		components.add(c);
+		if(components.size() == capacity) {
+			setOccupied(true);
+		};
+		notifyAll();
 	}
 
 	public int getAssignedComponent() {
