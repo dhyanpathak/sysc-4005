@@ -9,7 +9,7 @@ public class Component {
 		return type;
 	}
 	
-	public void arriveTo(Entity destination) throws InterruptedException {
+	public synchronized void arriveTo(Entity destination) throws InterruptedException {
 		destination.receive(this);
 	}
 }
