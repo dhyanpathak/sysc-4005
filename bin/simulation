@@ -1,0 +1,38 @@
+import java.util.List;
+
+public class simulation{
+
+	public Inspector1(env, logger, workstation_1, workstation_2, workstation_3) {
+  this.env=env;
+  this.logger=logger;
+  this.workstation_1=workstation_1;
+  this.workstation_2=workstation_2;
+  this.workstation_3=workstation_3;
+  
+  }
+  public class Inspector2{
+
+	public Inspector1(env, logger, workstation_1, workstation_2, workstation_3) {
+  this.env=env;
+  this.logger=logger;
+  this.workstation_1=workstation_1;
+  this.workstation_2=workstation_2;
+  this.workstation_3=workstation_3;
+  
+  }
+  
+  public workstation1(env, logger){
+  this.env=env;
+  this.logger=logger;
+  }
+  public workstation2(env, logger){
+  this.env=env;
+  this.logger=logger;
+  }
+  public workstation3(env, logger){
+  this.env=env;
+  this.logger=logger;
+  }
+
+
+}

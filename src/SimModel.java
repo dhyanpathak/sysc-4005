@@ -4,7 +4,7 @@ import java.util.*;
 import org.uncommons.maths.random.ExponentialGenerator;
 
 public class SimModel {
-    private static final int REPLICATION_NUMBER = 30;
+    private static final int REPLICATION_NUMBER = 100;
     private static final int REPLICATION_DURATION = 60;
     private static double ws1Mean;
     private static double ws2Mean;
@@ -97,6 +97,12 @@ public class SimModel {
             ((Inspector) inspector1).addBuffer(secondC1);
             ((Inspector) inspector1).addBuffer(thirdC1);
 
+            ArrayList<Workstation> workstations = new ArrayList<Workstation>();
+            workstations.add((Workstation) workstation1);
+            workstations.add((Workstation) workstation2);
+            workstations.add((Workstation) workstation3);
+            ((Inspector) inspector1).setTrackedWorkstations(workstations);
+
             Thread inspector2 = new Inspector(2);
             ((Inspector) inspector2).addBuffer(firstC2);
             ((Inspector) inspector2).addBuffer(firstC3);
@@ -116,9 +122,6 @@ public class SimModel {
             servinsp1RandomMean += servinsp1;
             servinsp22RandomMean += servinsp22;
             servinsp23RandomMean += servinsp23;
-
-            //System.out.println(String.format("Workstation 1 has wait time=%.2f\nWorkstation 2 has wait time=%.2f\nWorkstation 3 has wait time=%.2f\nInspector 1 for C1 has inspect time=%.2f\nInspector 2 for C2 has inspect time=%.2f\nInspector 2 for C3 has inspect time=%.2f",
-            //        ws1,ws2, ws3, servinsp1, servinsp22, servinsp23));
 
             ((Workstation) workstation1).setWaitTime(1, ws1);
             ((Workstation) workstation2).setWaitTime(2, ws2);
@@ -175,11 +178,11 @@ public class SimModel {
         System.out.println(String.format("difference = %f", getPercentageDifference(ws2Mean, ws2RandomMean)));
 
         System.out.println(String.format("\nws3.dat actual mean = %f", ws3Mean));
-        System.out.println(String.format("ws3.dat random mean = %f\n", ws3RandomMean));
+        System.out.println(String.format("ws3.dat random mean = %f", ws3RandomMean));
         System.out.println(String.format("difference = %f", getPercentageDifference(ws3Mean, ws3RandomMean)));
 
 
-        Tracking.getInstance().generateStats();
+        Tracking.getInstance().generateStats(REPLICATION_NUMBER, REPLICATION_DURATION);
     }
 
     public static Double getPercentageDifference(Double og, Double newer) {

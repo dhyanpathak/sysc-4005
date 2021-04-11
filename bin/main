@@ -1,0 +1,62 @@
+import java.util.*;
+
+public class main {
+    // Declaration of Simulation Methods
+
+    // Simulation Model Variable
+    public static int LastIns1IdleTime, LastIns2IdleTime;LastIns2IdleTime,LastBufferIdleTime
+    public static Queue<buffer> BQ;                                                          // Queue lines for the buffer unit and weighing unit
+    private static boolean isWS1Busy, isWS2Busy, isWS3Busy, isB1Busy, isB2Busy, isB3Busy; 
+    // Inputs
+    public static double[] WS1, WS2, WS3, sev1, sev2, sev3; // All these are times (in minutes)
+    public static int replication = 1000
+
+    // Required Metrics, Statistics, and Counters
+    private static double BB, BW;                                           // Total busy time for the buffer and workstation
+    private static double UB, UW;                                           
+    private static void Initialization() {
+        Clock = 0;
+        LastIns1IdleTime = 0;
+        LastIns2IdleTime = 0;
+        LastBufferIdleTime = 0;
+        BB = 0.0;
+        BW = 0.0;
+        
+
+        // Creating the required number of trucks
+        component C1 = new component();
+        component C2 = new component();
+        component C3 = new component();
+        //---------------------------
+        
+        workstation_1 = simulation.Workstation1(env, logger, replication)
+        workstation_2 = simulation.Workstation2(env, logger, replication)
+        workstation_3 = simulation.Workstation3(env, logger, replication)
+        inspector_1 = simulation.Inspector1(env, logger, replication,
+                                            workstation_1, workstation_2, workstation_3, False)
+        inspector_2 = simulation.Inspector2(env, logger, replication, workstation_2, workstation_3)
+        
+        Initialization();
+
+        System.out.print("\n-----------------------------------------------------------\n");
+        while ((clock <= replication)  {
+            SimEvent imminentEVT = FEL.poll();
+            if (imminentEVT != null) {
+            }
+        }
+        GenerateReport();
+    
+    private static void GenerateReport() {
+        UB = (BB/Clock)*100;
+        UW = (BW/Clock)*100;
+
+        System.out.print("\n-----------------------------------------------------------\n");
+        System.out.print("Statistics\n");
+        System.out.print("buffer Utilization = " + UB + "\n");
+        System.out.print("workstation Utilization = " + UW + "\n");
+    }
+        
+       
+
+
+}

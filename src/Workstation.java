@@ -7,7 +7,24 @@ public class Workstation extends Entity {
 	public Workstation(int assignedProduct) {
 		super(assignedProduct);
 	}
-		
+
+	public int getProcessingTime() {
+		if(isOccupied()) {
+			return 2;
+		};
+		if(this.getId() == 1 && first == null) {
+			return 2;
+		};
+		if(this.getId() > 1) {
+			if(first == null) {
+				return 1;
+			} else {
+				return 0;
+			}
+		};
+		return 1;
+	}
+
 	public void assemble() throws InterruptedException {
 		this.setOccupied(true);
 
@@ -17,6 +34,8 @@ public class Workstation extends Entity {
 
 		this.setOccupied(false);
 		Tracking.getInstance().addServiceTime("workstation"+getId(), (double) (System.currentTimeMillis() - getServiceStartTime()));
+		Tracking.getInstance().addThroughput((int) getId());
+
 	}
 
 	@Override
@@ -52,7 +71,6 @@ public class Workstation extends Entity {
 			
 			assemble();
 		}
-		//notifyAll();
 	}
 
 	public void addBuffer(Buffer b) {
