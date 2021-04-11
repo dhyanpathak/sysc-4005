@@ -38,7 +38,6 @@ public class Buffer {
 				e.printStackTrace();
 			}
 		}
-		//System.out.println("Buffer for C" + c.getType() + " received component.");
 		components.add(c);
 		if(components.size() == capacity) {
 			setOccupied(true);

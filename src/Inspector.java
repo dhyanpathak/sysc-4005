@@ -1,31 +1,45 @@
+import java.util.ArrayList;
 import java.util.List;
 import java.lang.Thread;
 import java.util.Random;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 public class Inspector extends Entity {
+	List<Workstation> trackedWorkstations;
 
 	public Inspector(int id) {
 		super(id);
+		trackedWorkstations = new ArrayList<Workstation>();
 	}
-	
+
+	public List<Workstation> getTrackedWorkstations() {
+		return trackedWorkstations;
+	}
+
+	public void setTrackedWorkstations(List<Workstation> trackedWorkstations) {
+		this.trackedWorkstations = trackedWorkstations;
+	}
+
 	public void inspect(Component c) throws InterruptedException {
 		sleep((long) (this.getWaitTime(c.getType()) * 1000));
 		int index = 0;
 
 		if(this.getId() == 1) {
 			int shortestBufferId = 0;
-			int shortestBufferSize = assignedBuffers.get(0).components.size();
-			for(int i = 0; i < assignedBuffers.size(); i++) {
-				if (assignedBuffers.get(i).components.size() < shortestBufferSize) {
+			//ALT DESIGN
+			int shortestProcessingTime = trackedWorkstations.get(0).getProcessingTime();
+			for(int i = trackedWorkstations.size() - 1; i != 0; i--) {
+				if(shortestProcessingTime > trackedWorkstations.get(i).getProcessingTime()) {
+					shortestProcessingTime = trackedWorkstations.get(i).getProcessingTime();
 					shortestBufferId = i;
-					shortestBufferSize = assignedBuffers.get(i).components.size();
 				}
 			}
 			index = shortestBufferId;
 		} else {
 			for(int i = 0; i < assignedBuffers.size(); i++) {
 				if(assignedBuffers.get(i).getAssignedComponent() == c.getType()) {
-					//System.out.println("Inspector " + this.getId() + " passed C" + c.getType() + " to buffer.");
 					index = i;
 					break;
 				}
@@ -54,7 +68,6 @@ public class Inspector extends Entity {
 
 		this.setOccupied(true);
 		inspect(c);
-		//notifyAll();
 	}
 
 	public void addBuffer(Buffer b) {
